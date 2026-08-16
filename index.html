@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="description" content="Crypto Clarity AI — privacy-first crypto portfolio health analysis across 12 risk dimensions." />
+  <title>Crypto Clarity AI — Portfolio Health Analyzer</title>
+  <link rel="preconnect" href="https://api.coingecko.com" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Crypto Clarity AI home">
+        <span class="brand-mark">C</span>
+        <span><strong>Crypto Clarity</strong><small>AI</small></span>
+      </a>
+      <div class="topbar-actions">
+        <span class="privacy-pill">No wallet · Browser-side</span>
+        <button id="loadDemoBtn" class="btn btn-ghost">Load demo</button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero panel">
+        <div>
+          <p class="eyebrow">12-DIMENSION PORTFOLIO INTELLIGENCE</p>
+          <h1>See what your crypto portfolio is hiding.</h1>
+          <p class="hero-copy">Enter holdings manually. Crypto Clarity AI measures structural risk, concentration, correlation, downside exposure, allocation quality and more — without connecting a wallet.</p>
+          <div class="hero-badges">
+            <span>0–100 health score</span><span>Crash stress tests</span><span>Exact rebalance amounts</span><span>Staking-aware projections</span>
+          </div>
+        </div>
+        <div class="hero-score-card">
+          <span class="muted">Portfolio Health</span>
+          <div class="hero-score"><strong id="heroScore">—</strong><span>/100</span></div>
+          <div id="heroRating" class="rating neutral">Waiting for holdings</div>
+          <p id="heroInsight" class="muted small">Your analysis stays in this browser.</p>
+        </div>
+      </section>
+
+      <section class="workspace-grid">
+        <aside class="panel input-panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">STEP 1</p><h2>Your holdings</h2></div>
+            <button id="addHoldingBtn" class="icon-btn" aria-label="Add holding">+</button>
+          </div>
+          <p class="muted small">Enter a symbol and current USD value. Staking APY is optional.</p>
+          <div id="holdingsRows" class="holdings-rows"></div>
+          <div class="input-summary">
+            <span>Total entered</span><strong id="enteredTotal">$0</strong>
+          </div>
+          <button id="analyzeBtn" class="btn btn-primary btn-wide">Analyze portfolio</button>
+          <p id="dataMode" class="status-note">Live historical metrics use CoinGecko when available. If a request is unavailable, the analyzer clearly switches that metric to an estimated fallback.</p>
+        </aside>
+
+        <section class="panel results-panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">STEP 2</p><h2>Portfolio diagnosis</h2></div>
+            <span id="analysisTimestamp" class="muted small"></span>
+          </div>
+
+          <nav class="tabs" aria-label="Analysis views">
+            <button class="tab active" data-tab="overview">Overview</button>
+            <button class="tab" data-tab="risk">Risk</button>
+            <button class="tab" data-tab="rebalance">Rebalance</button>
+            <button class="tab" data-tab="future">Future value</button>
+          </nav>
+
+          <div id="tab-overview" class="tab-panel active">
+            <div class="kpi-grid">
+              <article class="kpi"><span>Health score</span><strong id="healthScore">—</strong><small id="healthLabel">Not analyzed</small></article>
+              <article class="kpi"><span>Largest position</span><strong id="topWeight">—</strong><small id="topAsset">—</small></article>
+              <article class="kpi"><span>Effective holdings</span><strong id="effectiveHoldings">—</strong><small>HHI-derived</small></article>
+              <article class="kpi"><span>Avg. correlation</span><strong id="avgCorrelation">—</strong><small id="correlationMode">—</small></article>
+            </div>
+            <div class="score-layout">
+              <div>
+                <h3>12 dimensions</h3>
+                <div id="dimensionGrid" class="dimension-grid empty-state">Run an analysis to populate all 12 dimensions.</div>
+              </div>
+              <div>
+                <h3>Allocation</h3>
+                <div id="allocationBars" class="allocation-bars empty-state">Your allocation will appear here.</div>
+                <div id="topInsights" class="insights"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="tab-risk" class="tab-panel">
+            <div class="section-heading compact"><div><h3>Crash stress tests</h3><p class="muted small">Illustrative historical-style shocks applied to your current dollar allocation.</p></div></div>
+            <div id="stressGrid" class="stress-grid empty-state">Run an analysis to calculate downside scenarios.</div>
+            <h3>Historical risk metrics</h3>
+            <div id="assetRiskTable" class="table-wrap empty-state">Historical volatility, max drawdown and BTC correlation will appear here when available.</div>
+          </div>
+
+          <div id="tab-rebalance" class="tab-panel">
+            <div class="strategy-picker" role="group" aria-label="Rebalance strategy">
+              <button class="strategy active" data-strategy="btcCore">BTC Core</button>
+              <button class="strategy" data-strategy="balanced">Balanced</button>
+              <button class="strategy" data-strategy="aggressive">Aggressive Diversification</button>
+            </div>
+            <p class="muted small">Migration-build targets are transparent defaults designed to preserve the three strategy modes from CCAI. They should be validated against the original Replit formulas before production cutover.</p>
+            <div id="rebalanceSummary" class="rebalance-summary empty-state">Run an analysis to generate exact dollar moves.</div>
+            <div id="rebalanceTable" class="table-wrap"></div>
+          </div>
+
+          <div id="tab-future" class="tab-panel">
+            <div class="future-controls">
+              <label>Years<input id="futureYears" type="range" min="1" max="15" value="5" /><span id="futureYearsLabel">5 years</span></label>
+              <label>Monthly contribution<input id="monthlyContribution" type="number" min="0" step="50" value="0" /></label>
+            </div>
+            <div id="futureCards" class="future-grid empty-state">Run an analysis to project bear, base and bull scenarios.</div>
+            <p class="status-note">Future-value scenarios are educational illustrations, not forecasts or financial advice. Staking APY is included only for positions you mark as staked.</p>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel methodology-note">
+        <p class="eyebrow">MIGRATION BUILD</p>
+        <h2>Designed to remove the recurring Replit dependency.</h2>
+        <p>This version is a static browser application: no always-on server, no wallet connection, and no database required for portfolio calculations. The original Replit source is still being treated as the canonical reference until parity is verified; payment/access-code migration remains intentionally separate from the analysis engine.</p>
+      </section>
+    </main>
+
+    <footer>Crypto Clarity AI · Educational portfolio diagnostics · Nothing entered here is sent to our server.</footer>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
