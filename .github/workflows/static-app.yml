@@ -14,14 +14,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: JavaScript syntax check
-        run: node --check app.js
+      - name: JavaScript syntax checks
+        run: |
+          node --check app.js
+          find api -type f -name '*.mjs' -print0 | xargs -0 -n1 node --check
       - name: Required files
         run: |
           test -s index.html
           test -s styles.css
           test -s app.js
           test -s vercel.json
+          test -s api/stripe/webhook.mjs
+          test -s api/checkout/create.mjs
+          test -s api/checkout/session.mjs
+          test -s api/access/validate.mjs
+          test -s supabase/migrations/001_ccai_entitlements.sql
+      - name: Secret regression guard
+        run: |
+          ! grep -R -E "(sk_live_|whsec_|service_role.{0,20}[A-Za-z0-9_-]{20,})" -n --exclude-dir=.git .
       - name: Privacy regression guard
         run: |
           ! grep -R "walletconnect\|seed phrase\|private key" -n --exclude-dir=.git index.html app.js styles.css
