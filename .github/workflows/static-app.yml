@@ -31,7 +31,7 @@ jobs:
           test -s supabase/migrations/001_ccai_entitlements.sql
       - name: Secret regression guard
         run: |
-          ! grep -R -E "(sk_live_|whsec_|service_role.{0,20}[A-Za-z0-9_-]{20,})" -n --exclude-dir=.git .
+          ! grep -R -E "(sk_live_|whsec_|service_role.{0,20}[A-Za-z0-9_-]{20,})" -n --exclude-dir=.git --exclude=static-app.yml .
       - name: Privacy regression guard
         run: |
           ! grep -R "walletconnect\|seed phrase\|private key" -n --exclude-dir=.git index.html app.js styles.css
