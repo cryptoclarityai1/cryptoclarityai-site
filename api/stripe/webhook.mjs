@@ -4,6 +4,7 @@ import {
   requiredEnv,
   revokeByPaymentIntent,
   sendAccessEmail,
+  stripeRequest,
   verifyStripeSignature,
 } from '../_lib.mjs';
 
@@ -40,8 +41,13 @@ export async function POST(request) {
         break;
       }
       case 'charge.dispute.created': {
-        const charge = event.data?.object;
-        await revokeByPaymentIntent(charge?.payment_intent, 'charge_dispute_created');
+        const dispute = event.data?.object;
+        let paymentIntentId = dispute?.payment_intent || null;
+        if (!paymentIntentId && dispute?.charge) {
+          const charge = await stripeRequest(`/charges/${encodeURIComponent(dispute.charge)}`);
+          paymentIntentId = charge?.payment_intent || null;
+        }
+        await revokeByPaymentIntent(paymentIntentId, 'charge_dispute_created');
         break;
       }
       default:
@@ -49,7 +55,7 @@ export async function POST(request) {
     }
     return json({ received: true });
   } catch (error) {
-    // Returning non-2xx lets Stripe retry transient fulfillment failures.
+    // Returning non-2xx asks Stripe to retry transient fulfillment failures.
     console.error('stripe_webhook_fulfillment_failed', event?.id, event?.type, error?.message || error);
     return json({ error: 'Fulfillment failed; retry requested.' }, 500);
   }
