@@ -18,6 +18,9 @@ jobs:
         run: |
           node --check app.js
           find api -type f -name '*.mjs' -print0 | xargs -0 -n1 node --check
+          node --check tests/payment-smoke.mjs
+      - name: Payment security smoke tests
+        run: node tests/payment-smoke.mjs
       - name: Required files
         run: |
           test -s index.html
