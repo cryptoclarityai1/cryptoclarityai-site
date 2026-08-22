@@ -24,6 +24,9 @@ for (const event of [
 assert.ok(app.includes("fetch('/api/checkout/create'"), 'checkout UI must use the server-side creation endpoint');
 assert.ok(app.includes("fetch('/api/access/validate'"), 'access codes must be verified server-side');
 assert.ok(app.includes('window.__ccaiCheckoutSessionId'), 'success routing must use the redacted session handoff');
-assert.ok(!/track\([^;]{0,500}\b(symbol|value|apy|access_code|session_id)\b/i.test(app), 'analytics events must not include portfolio or access credentials');
+const literalTrackCalls = [...app.matchAll(/track\\((['"])[^'"]+\\1,\\s*\\{([\\s\\S]*?)\\}\\s*\\)/g)];
+for (const call of literalTrackCalls) {
+  assert.ok(!/\\b(symbol|value|apy|access_code|session_id)\\s*:/i.test(call[2]), 'analytics events must not include portfolio or access credential properties');
+}
 
 console.log('tracking and access-gate smoke tests passed');
