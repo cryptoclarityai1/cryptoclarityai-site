@@ -5,6 +5,46 @@ const money = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'U
 const pct = (n, digits=1) => `${Number(n||0).toFixed(digits)}%`;
 const fmt = (n,d=2) => Number.isFinite(n) ? Number(n).toFixed(d) : '—';
 
+const TRACKING_VERSION = 'ccai-funnel-v1';
+let analysisStartedAt = 0;
+let demoLoaded = false;
+
+function track(event, properties={}) {
+  try {
+    window.posthog?.capture?.(event, {
+      ...properties,
+      product: 'crypto_clarity_ai',
+      surface: 'migration_app',
+      tracking_version: TRACKING_VERSION,
+      page_path: location.pathname,
+    });
+  } catch {}
+}
+
+function attribution() {
+  const params = new URLSearchParams(location.search);
+  let refSource = '';
+  try { refSource = document.referrer ? new URL(document.referrer).hostname : ''; } catch {}
+  const utmSource = params.get('utm_source') || '';
+  return {
+    source: utmSource || refSource || 'direct',
+    ref_source: refSource,
+    utm_source: utmSource,
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    landing_page: location.origin + location.pathname,
+    page_path: location.pathname,
+  };
+}
+
+function analyticsIds() {
+  return {
+    analytics_session_id: window.posthog?.get_session_id?.() || '',
+    visitor_id: window.posthog?.get_distinct_id?.() || '',
+  };
+}
+
+
 const KNOWN = {
   BTC:{id:'bitcoin', tier:'large', group:'btc', fallbackVol:.63, fallbackDD:-.78},
   ETH:{id:'ethereum', tier:'large', group:'eth', fallbackVol:.78, fallbackDD:-.82},
@@ -38,6 +78,7 @@ const STRATEGIES = {
 let activeStrategy = 'btcCore';
 let last = null;
 let resolvedCache = new Map();
+let accessGranted = false;
 
 function addHolding(seed={symbol:'',value:'',apy:''}) {
   const row = document.createElement('div'); row.className='holding-row';
@@ -86,8 +127,121 @@ function correlation(a,b){const n=Math.min(a.length,b.length);if(n<20)return nul
 function tierFromMarketCap(cap,fallback){if(cap>=50e9)return 'large';if(cap>=10e9)return 'largeAlt';if(cap>=1e9)return 'alt';if(cap>0)return 'small';return fallback;}
 function stable(symbol){return ['USDC','USDT','DAI','FDUSD','TUSD','USDE'].includes(symbol);}
 
+
+function setAccess(granted, source='unknown', code='') {
+  accessGranted = Boolean(granted);
+  if (code) localStorage.setItem('ccai_access_code', code);
+  const gate = $('#accessGate');
+  if (gate) gate.classList.toggle('unlocked', accessGranted);
+  $('.tab[data-requires-access="true"]').forEach((tab) => {
+    tab.classList.toggle('locked', !accessGranted);
+    tab.setAttribute('aria-disabled', String(!accessGranted));
+  });
+  if (accessGranted) {
+    $('#accessStatus').textContent = 'Lifetime access verified. Full report unlocked.';
+    track('access granted', { access_source: source });
+  }
+  if (last) {
+    render(last);
+    if (accessGranted) {
+      renderRebalance();
+      renderFuture();
+    }
+  }
+}
+
+function showAccessGate(message='Full-report access is required for this section.') {
+  $('#accessStatus').textContent = message;
+  $('#accessGate').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function validateAccessCode(code, source='saved_code') {
+  const normalized = String(code || '').trim().toUpperCase();
+  if (!normalized) return false;
+  $('#accessStatus').textContent = 'Verifying lifetime access…';
+  try {
+    const response = await fetch('/api/access/validate', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ code: normalized }),
+    });
+    const data = await response.json();
+    if (response.ok && data.valid) {
+      setAccess(true, source, normalized);
+      track('access validation succeeded', { access_source: source });
+      return true;
+    }
+  } catch {}
+  localStorage.removeItem('ccai_access_code');
+  setAccess(false);
+  $('#accessStatus').textContent = 'That access code could not be verified.';
+  track('access validation failed', { access_source: source });
+  return false;
+}
+
+async function startCheckout(ctaLocation='report_gate') {
+  const button = $('#checkoutBtn');
+  button.disabled = true;
+  button.textContent = 'Opening secure checkout…';
+  const safeProperties = {
+    cta_location: ctaLocation,
+    offer: 'lifetime_12',
+    holding_count: last?.holdings?.length || 0,
+  };
+  track('checkout started', safeProperties);
+  try {
+    const response = await fetch('/api/checkout/create', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        ...attribution(),
+        ...analyticsIds(),
+        cta_location: ctaLocation,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok || !data.url) throw new Error(data.error || 'checkout_unavailable');
+    track('checkout redirected', safeProperties);
+    location.assign(data.url);
+  } catch {
+    button.disabled = false;
+    button.textContent = 'Unlock full report — $12';
+    $('#accessStatus').textContent = 'Secure checkout is temporarily unavailable. Please try again.';
+    track('checkout failed', safeProperties);
+  }
+}
+
+async function restoreAccess() {
+  const code = localStorage.getItem('ccai_access_code');
+  if (code) await validateAccessCode(code, 'saved_code');
+}
+
+async function handleCheckoutRoute() {
+  if (location.pathname === '/checkout/cancel') {
+    $('#accessStatus').textContent = 'Checkout canceled. No charge was made.';
+    track('checkout canceled', { offer: 'lifetime_12' });
+    return;
+  }
+  const sessionId = window.__ccaiCheckoutSessionId || '';
+  if (location.pathname !== '/checkout/success' || !sessionId) return;
+  $('#accessStatus').textContent = 'Verifying payment and preparing lifetime access…';
+  try {
+    const response = await fetch('/api/checkout/session?session_id=' + encodeURIComponent(sessionId));
+    const data = await response.json();
+    if (!response.ok || !data.paid || !data.access_code) throw new Error('payment_not_verified');
+    setAccess(true, 'stripe_checkout', data.access_code);
+    $('#accessStatus').textContent = 'Payment verified. Save this lifetime code: ' + data.access_code;
+    track('purchase verified', { offer: 'lifetime_12' });
+  } catch {
+    $('#accessStatus').textContent = 'Payment verification is still pending. Refresh this page in a moment or contact support.';
+    track('purchase verification failed', { offer: 'lifetime_12' });
+  }
+}
+
 async function analyze(){
   const holdings=holdingsFromForm(); if(!holdings.length){alert('Add at least one holding with a USD value.');return;}
+  analysisStartedAt = performance.now();
+  track('free analysis started', { holding_count: holdings.length, has_staking: holdings.some((h)=>h.apy>0), is_demo: demoLoaded });
   $('#analyzeBtn').disabled=true; $('#analyzeBtn').textContent='Analyzing…'; $('#dataMode').textContent='Fetching available 180-day market history…';
   const total=holdings.reduce((s,h)=>s+h.value,0); holdings.forEach(h=>h.weight=h.value/total);
   const coins=await Promise.all(holdings.map(h=>resolveCoin(h.symbol)));
@@ -102,6 +256,12 @@ async function analyze(){
   render(last); renderRebalance(); renderFuture();
   $('#dataMode').textContent=liveCount===holdings.length?'Live mode: 180-day history loaded for every holding via CoinGecko.':`Mixed mode: 180-day history loaded for ${liveCount}/${holdings.length} holdings; unavailable assets use labeled risk fallbacks.`;
   $('#analysisTimestamp').textContent=new Date().toLocaleString(); $('#analyzeBtn').disabled=false; $('#analyzeBtn').textContent='Analyze portfolio';
+  track('free analysis completed', {
+    holding_count: holdings.length,
+    analysis_mode: liveCount===holdings.length ? 'live' : 'mixed',
+    duration_ms: Math.round(performance.now()-analysisStartedAt),
+    is_demo: demoLoaded,
+  });
 }
 
 function scoreDimensions(h,total){
@@ -134,9 +294,12 @@ function strategyTargets(h,b){const target={};const groups={BTC:h.filter(x=>x.sy
 function rating(score){return score>=70?['Structurally sound','good']:score>=50?['Needs attention','warn']:['Critical vulnerabilities','bad'];}
 function render(data){
   const [label,cls]=rating(data.overall); $('#heroScore').textContent=data.overall;$('#healthScore').textContent=data.overall;$('#heroRating').textContent=label;$('#heroRating').className=`rating ${cls}`;$('#healthLabel').textContent=label;
-  const sorted=[...data.holdings].sort((a,b)=>b.weight-a.weight);$('#topWeight').textContent=pct(sorted[0].weight*100);$('#topAsset').textContent=sorted[0].symbol;$('#effectiveHoldings').textContent=fmt(1/data.holdings.reduce((s,x)=>s+x.weight*x.weight,0),1);$('#avgCorrelation').textContent=data.correlations.avg==null?'—':fmt(data.correlations.avg,2);$('#correlationMode').textContent=data.correlations.pairs.some(p=>p.mode==='180d')?'180-day + fallback':'estimated';
+  const sorted=[...data.holdings].sort((a,b)=>b.weight-a.weight);$('#topWeight').textContent=pct(sorted[0].weight*100);$('#topAsset').textContent=sorted[0].symbol;$('#effectiveHoldings').textContent=fmt(1/data.holdings.reduce((s,x)=>s+x.weight*x.weight,0),1);$('#avgCorrelation').textContent=accessGranted?(data.correlations.avg==null?'—':fmt(data.correlations.avg,2)):'••';$('#correlationMode').textContent=accessGranted?(data.correlations.pairs.some(p=>p.mode==='180d')?'180-day + fallback':'estimated'):'Full report';
   $('#heroInsight').textContent=topInsight(data);
-  $('#dimensionGrid').className='dimension-grid';$('#dimensionGrid').innerHTML=Object.entries(data.scores).map(([k,v])=>`<article class="dimension-card"><div class="dimension-top"><span>${DIM_NAMES[k]}</span><strong>${Math.round(v)}</strong></div><div class="score-bar"><div class="score-fill" style="width:${clamp(v)}%"></div></div></article>`).join('');
+  const dimensionEntries=Object.entries(data.scores).sort((a,b)=>a[1]-b[1]);
+  const visibleDimensions=accessGranted?dimensionEntries:dimensionEntries.slice(0,3);
+  $('#dimensionGrid').className='dimension-grid';
+  $('#dimensionGrid').innerHTML=visibleDimensions.map(([k,v])=>`<article class="dimension-card"><div class="dimension-top"><span>${DIM_NAMES[k]}</span><strong>${Math.round(v)}</strong></div><div class="score-bar"><div class="score-fill" style="width:${clamp(v)}%"></div></div></article>`).join('')+(accessGranted?'':`<article class="dimension-card dimension-locked"><div class="dimension-top"><span>9 additional scores</span><strong>••</strong></div><p class="muted small">Unlock the full report to reveal every dimension.</p></article>`);
   $('#allocationBars').className='allocation-bars';$('#allocationBars').innerHTML=sorted.map(x=>`<div class="allocation-row"><strong>${x.symbol}</strong><div class="allocation-track"><div class="allocation-fill" style="width:${x.weight*100}%"></div></div><span>${pct(x.weight*100)}</span></div>`).join('');
   const insights=buildInsights(data);$('#topInsights').innerHTML=insights.map(i=>`<div class="insight ${i.sev||''}">${i.text}</div>`).join('');
   $('#stressGrid').className='stress-grid';$('#stressGrid').innerHTML=data.stress.map(s=>`<article class="stress-card"><span>${s.label}</span><strong>${money(s.loss)}</strong><em>${pct(s.pct*100)} · ${money(s.remaining)} remaining</em><small>Illustrative scenario</small></article>`).join('');
@@ -149,8 +312,19 @@ function renderRiskTable(d){const btc=d.holdings.find(x=>x.symbol==='BTC');$('#a
 function renderRebalance(){if(!last)return;const s=STRATEGIES[activeStrategy],targets=strategyTargets(last.holdings,s.buckets);let turnover=0;const rows=last.holdings.map(x=>{const target=targets[x.symbol]||0,diff=(target-x.weight)*last.total;turnover+=Math.abs(diff);return {...x,target,diff};});$('#rebalanceSummary').className='rebalance-summary';$('#rebalanceSummary').innerHTML=`<strong>${s.label}</strong><br><span class="muted small">Estimated one-way capital to reposition: ${money(turnover/2)}. Target weights are migration defaults pending formula parity validation.</span>`;$('#rebalanceTable').innerHTML=`<table><thead><tr><th>Asset</th><th>Current</th><th>Target</th><th>Dollar move</th><th>Action</th></tr></thead><tbody>${rows.map(r=>{const a=Math.abs(r.diff)<last.total*.005?'Hold':r.diff>0?'Buy':'Trim';const cls=a==='Buy'?'move-buy':a==='Trim'?'move-sell':'move-hold';return `<tr><td><strong>${r.symbol}</strong></td><td>${pct(r.weight*100)}</td><td>${pct(r.target*100)}</td><td>${money(Math.abs(r.diff))}</td><td class="${cls}">${a}</td></tr>`}).join('')}</tbody></table>`;}
 function renderFuture(){if(!last)return;const years=Number($('#futureYears').value),monthly=Number($('#monthlyContribution').value)||0;$('#futureYearsLabel').textContent=`${years} year${years===1?'':'s'}`;const stakeBoost=last.holdings.reduce((s,x)=>s+x.weight*(x.apy/100),0);const scenarios=[['Bear',-.04],['Base',.08],['Bull',.18]];$('#futureCards').className='future-grid';$('#futureCards').innerHTML=scenarios.map(([name,r])=>{const annual=r+stakeBoost;const monthlyR=Math.pow(1+annual,1/12)-1;const n=years*12;let fv=last.total*Math.pow(1+monthlyR,n);if(monthly>0)fv+=monthlyR===0?monthly*n:monthly*((Math.pow(1+monthlyR,n)-1)/monthlyR);return `<article class="future-card"><span>${name} scenario · ${(annual*100).toFixed(1)}% incl. weighted APY</span><strong>${money(fv)}</strong><small>${years}y · ${money(monthly)}/mo contribution</small></article>`}).join('');}
 
-$('#addHoldingBtn').onclick=()=>addHolding();$('#loadDemoBtn').onclick=()=>{loadDemo();analyze();};$('#analyzeBtn').onclick=analyze;
-$$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>x.classList.remove('active'));$$('.tab-panel').forEach(x=>x.classList.remove('active'));t.classList.add('active');$(`#tab-${t.dataset.tab}`).classList.add('active');});
-$$('.strategy').forEach(b=>b.onclick=()=>{$$('.strategy').forEach(x=>x.classList.remove('active'));b.classList.add('active');activeStrategy=b.dataset.strategy;renderRebalance();});
+$('#addHoldingBtn').onclick=()=>addHolding();
+$('#loadDemoBtn').onclick=()=>{demoLoaded=true;track('free demo loaded',{holding_count:5});loadDemo();analyze();};
+$('#analyzeBtn').onclick=()=>{demoLoaded=false;analyze();};
+$('#openAccessBtn').onclick=()=>showAccessGate('Enter a lifetime code or unlock the complete report for $12.');
+$('#checkoutBtn').onclick=()=>startCheckout('report_gate');
+$('#accessForm').onsubmit=async(event)=>{event.preventDefault();await validateAccessCode($('#accessCodeInput').value,'manual_code');};
+$('.tab').forEach(t=>t.onclick=()=>{
+  if(t.dataset.requiresAccess==='true'&&!accessGranted){track('paid feature blocked',{feature:t.dataset.tab});showAccessGate();return;}
+  $('.tab').forEach(x=>x.classList.remove('active'));$('.tab-panel').forEach(x=>x.classList.remove('active'));t.classList.add('active');$(`#tab-${t.dataset.tab}`).classList.add('active');track('analysis tab viewed',{tab:t.dataset.tab});
+});
+$('.strategy').forEach(b=>b.onclick=()=>{$('.strategy').forEach(x=>x.classList.remove('active'));b.classList.add('active');activeStrategy=b.dataset.strategy;renderRebalance();track('rebalance strategy viewed',{strategy:activeStrategy});});
 $('#futureYears').oninput=renderFuture;$('#monthlyContribution').oninput=renderFuture;
 ['BTC','ETH','SOL'].forEach((symbol,i)=>addHolding({symbol,value:i===0?10000:i===1?5000:2500,apy:i===1?3.2:i===2?6.5:''}));
+setAccess(false);
+restoreAccess();
+handleCheckoutRoute();
