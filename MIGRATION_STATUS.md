@@ -12,6 +12,8 @@ Move the Portfolio Health Analyzer off Replit so ordinary product updates no lon
 - This branch contains a clean-room browser-side replacement built from verified public CCAI product behavior and connected project materials.
 - Vercel Git integration is deploying the migration branch successfully as a preview.
 - Static CI checks pass on the migration branch.
+- Privacy-safe PostHog funnel instrumentation is implemented on the migration branch.
+- A $12 checkout/access gate now limits free analysis to three risk dimensions and routes verified buyers through the server-side entitlement flow.
 
 ## What this replacement already covers
 - Manual holdings entry; no wallet connection.
@@ -23,6 +25,8 @@ Move the Portfolio Health Analyzer off Replit so ordinary product updates no lon
 - Four crash stress tests in dollars.
 - Three rebalancing modes with exact dollar moves.
 - Staking-aware bear/base/bull future-value scenarios.
+- Funnel events for free analysis, paid-feature interest, checkout, verified purchase and access validation.
+- Analytics payloads exclude coin symbols, portfolio values, APYs, access codes and Checkout Session IDs.
 - Responsive, dependency-free static UI suitable for Vercel or Cloudflare Pages.
 
 ## Production payment architecture discovered
@@ -51,6 +55,9 @@ Move the Portfolio Health Analyzer off Replit so ordinary product updates no lon
 - [x] Deploy migration preview on Vercel through Git integration.
 - [x] Replace obsolete Python CI with static-app checks.
 - [x] Static JavaScript syntax / required-file CI checks pass.
+- [x] Add privacy-safe PostHog initialization and explicit funnel events.
+- [x] Add free-report gating and connect the $12 checkout/access UI to the scaffolded APIs.
+- [ ] Confirm events arrive in PostHog project 537425 from the Vercel preview.
 - [ ] Mobile, tablet and desktop QA on the preview.
 - [ ] Validate CoinGecko rate-limit/fallback behavior.
 - [ ] Point `app.cryptoclarityai.com` to the new deployment only after all above items pass.
