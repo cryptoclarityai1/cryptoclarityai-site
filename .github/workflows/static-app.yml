@@ -1,0 +1,43 @@
+name: Static app checks
+
+on:
+  push:
+    branches: ["main", "migration/replit-exit"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: JavaScript syntax checks
+        run: |
+          node --check app.js
+          find api -type f -name '*.mjs' -print0 | xargs -0 -n1 node --check
+          node --check tests/payment-smoke.mjs
+          node --check tests/tracking-smoke.mjs
+      - name: Payment security smoke tests
+        run: node tests/payment-smoke.mjs
+      - name: Funnel tracking and access-gate smoke tests
+        run: node tests/tracking-smoke.mjs
+      - name: Required files
+        run: |
+          test -s index.html
+          test -s styles.css
+          test -s app.js
+          test -s vercel.json
+          test -s api/stripe/webhook.mjs
+          test -s api/checkout/create.mjs
+          test -s api/checkout/session.mjs
+          test -s api/access/validate.mjs
+          test -s supabase/migrations/001_ccai_entitlements.sql
+      - name: Secret regression guard
+        run: |
+          ! grep -R -E "(sk_live_|whsec_|service_role.{0,20}[A-Za-z0-9_-]{20,})" -n --exclude-dir=.git --exclude=static-app.yml .
+      - name: Privacy regression guard
+        run: |
+          ! grep -R "walletconnect\|seed phrase\|private key" -n --exclude-dir=.git index.html app.js styles.css

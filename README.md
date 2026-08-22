@@ -1,14 +1,15 @@
-# Crypto Clarity AI Website
+# Crypto Clarity AI — Portfolio Health Analyzer
 
-This repository contains the source code for the Crypto Clarity AI website. Crypto Clarity AI is a premium crypto portfolio intelligence tool that analyzes your holdings across 12 risk dimensions and surfaces hidden risks like concentration, correlation, drawdown, and volatility. It provides a 60‑second portfolio health test with no wallet connection, optional staking yield input, and generates an overall health score plus a detailed breakdown.
+A dependency-free, privacy-first browser application for evaluating crypto portfolio structure across 12 risk dimensions.
 
-The website highlights features such as:
+## Run locally
+Open `index.html` with a small static server. No build step is required.
 
-- **Instant 12D portfolio health score** and individual risk dimension scores.
-- **Concentration, correlation, volatility, drawdown, and allocation balance analysis**.
-- **Stress testing** of your portfolio under various market crash scenarios.
-- **Exact rebalancing guidance** based on your selected strategy (BTC Core, Balanced, or Aggressive Diversification).
-- **Staking‑aware future value projections**.
-- **No account, API keys or wallet signatures required**; all analysis runs client‑side for enhanced privacy.
+## Hosting
+This app is static and can be deployed to Vercel, Cloudflare Pages, Netlify, GitHub Pages, or any static host. `vercel.json` is included for secure response headers.
 
-To learn more or try the free 60‑second test, visit [cryptoclarityai.com](https://cryptoclarityai.com).
+## Privacy model
+Holdings are entered manually and analyzed in the browser. The app does not send portfolio holdings to an application server. Coin symbols are used to request public market data from CoinGecko when live historical metrics are available.
+
+## Migration note
+This code was created on the `migration/replit-exit` branch as a non-destructive replacement while the original Replit source is inaccessible. See `MIGRATION_STATUS.md` before any production cutover.
