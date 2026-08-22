@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#07111f" />
   <meta name="description" content="Crypto Clarity AI — privacy-first crypto portfolio health analysis across 12 risk dimensions." />
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      if (location.pathname === '/checkout/success' && params.has('session_id')) {
+        window.__ccaiCheckoutSessionId = params.get('session_id');
+        history.replaceState({}, '', location.pathname);
+      }
+    })();
+  </script>
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_yfGj2gCW6GdiF2PmV78kYWiWhodFVHKrC2s2zm96a6wd',{
+      api_host:'https://us.i.posthog.com',
+      defaults:'2026-05-30',
+      autocapture:false,
+      capture_pageview:true,
+      capture_pageleave:true,
+      disable_session_recording:true,
+      persistence:'localStorage',
+      person_profiles:'identified_only'
+    });
+    posthog.register({product:'crypto_clarity_ai',surface:'migration_app',tracking_version:'ccai-funnel-v1'});
+  </script>
   <title>Crypto Clarity AI — Portfolio Health Analyzer</title>
   <link rel="preconnect" href="https://api.coingecko.com" />
   <link rel="stylesheet" href="./styles.css" />
@@ -18,6 +42,7 @@
       </a>
       <div class="topbar-actions">
         <span class="privacy-pill">No wallet · Browser-side</span>
+        <button id="openAccessBtn" class="btn btn-ghost">Already purchased?</button>
         <button id="loadDemoBtn" class="btn btn-ghost">Load demo</button>
       </div>
     </header>
@@ -29,7 +54,7 @@
           <h1>See what your crypto portfolio is hiding.</h1>
           <p class="hero-copy">Enter holdings manually. Crypto Clarity AI measures structural risk, concentration, correlation, downside exposure, allocation quality and more — without connecting a wallet.</p>
           <div class="hero-badges">
-            <span>0–100 health score</span><span>Crash stress tests</span><span>Exact rebalance amounts</span><span>Staking-aware projections</span>
+            <span>0–100 health score</span><span>Free partial analysis</span><span>Full report $12 once</span><span>No signup</span>
           </div>
         </div>
         <div class="hero-score-card">
@@ -61,11 +86,27 @@
             <span id="analysisTimestamp" class="muted small"></span>
           </div>
 
+          <section id="accessGate" class="access-gate" aria-labelledby="accessHeading">
+            <div>
+              <p class="eyebrow">FULL REPORT</p>
+              <h3 id="accessHeading">Unlock all 12 scores, stress details and exact rebalance moves.</h3>
+              <p class="muted small">One-time $12 launch price · Regularly $19 · Lifetime access · 7-day money-back guarantee</p>
+            </div>
+            <div class="access-actions">
+              <button id="checkoutBtn" class="btn btn-primary">Unlock full report — $12</button>
+              <form id="accessForm" class="access-form">
+                <input id="accessCodeInput" aria-label="Lifetime access code" autocomplete="off" placeholder="CCAI-XXXX-XXXX-XXXX-XXXX" />
+                <button class="btn" type="submit">Use access code</button>
+              </form>
+              <p id="accessStatus" class="status-note" role="status" aria-live="polite"></p>
+            </div>
+          </section>
+
           <nav class="tabs" aria-label="Analysis views">
             <button class="tab active" data-tab="overview">Overview</button>
-            <button class="tab" data-tab="risk">Risk</button>
-            <button class="tab" data-tab="rebalance">Rebalance</button>
-            <button class="tab" data-tab="future">Future value</button>
+            <button class="tab" data-tab="risk" data-requires-access="true" aria-disabled="true">Risk · Full</button>
+            <button class="tab" data-tab="rebalance" data-requires-access="true" aria-disabled="true">Rebalance · Full</button>
+            <button class="tab" data-tab="future" data-requires-access="true" aria-disabled="true">Future value · Full</button>
           </nav>
 
           <div id="tab-overview" class="tab-panel active">
@@ -120,11 +161,11 @@
       <section class="panel methodology-note">
         <p class="eyebrow">MIGRATION BUILD</p>
         <h2>Designed to remove the recurring Replit dependency.</h2>
-        <p>This version is a static browser application: no always-on server, no wallet connection, and no database required for portfolio calculations. The original Replit source is still being treated as the canonical reference until parity is verified; payment/access-code migration remains intentionally separate from the analysis engine.</p>
+        <p>This version keeps portfolio calculations browser-side and adds a server-verified $12 checkout and lifetime-access path. Privacy-safe product analytics record funnel actions only; coin symbols, dollar values, APYs, access codes and Stripe session IDs are never included in analytics events. Production remains unchanged until payment and formula parity are verified.</p>
       </section>
     </main>
 
-    <footer>Crypto Clarity AI · Educational portfolio diagnostics · Nothing entered here is sent to our server.</footer>
+    <footer>Crypto Clarity AI · Educational portfolio diagnostics · Portfolio inputs stay browser-side; analytics exclude holdings and access credentials.</footer>
   </div>
   <script type="module" src="./app.js"></script>
 </body>
