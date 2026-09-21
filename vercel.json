@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "app.cryptoclarityai.com"
+        }
+      ],
+      "destination": "https://onlxiplhpprjgolizibj.supabase.co/functions/v1/ccai-live"
+    },
+    {
+      "source": "/:path*",
+      "destination": "https://cryptoclarityai-live.lovable.app/:path*"
+    }
+  ]
+}
