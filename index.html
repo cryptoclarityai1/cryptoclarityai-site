@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#07111f" />
-  <meta name="description" content="Crypto Clarity AI — privacy-first crypto portfolio health analysis across 12 risk dimensions." />
+  <meta name="description" content="Check your crypto portfolio health score, concentration risk and downside exposure without connecting a wallet. Free preview; complete report for $12 once." />
 
   <script>
     (function () {
@@ -27,7 +27,7 @@
       persistence:'localStorage',
       person_profiles:'identified_only'
     });
-    posthog.register({product:'crypto_clarity_ai',surface:'migration_app',tracking_version:'ccai-funnel-v1'});
+    posthog.register({product:'crypto_clarity_ai',surface:'migration_app',tracking_version:'ccai-funnel-v2'});
   </script>
   <title>Crypto Clarity AI — Portfolio Health Analyzer</title>
   <link rel="preconnect" href="https://api.coingecko.com" />
@@ -41,7 +41,8 @@
         <span><strong>Crypto Clarity</strong><small>AI</small></span>
       </a>
       <div class="topbar-actions">
-        <span class="privacy-pill">No wallet · Browser-side</span>
+        <a class="text-link" href="./stress-test" data-track-cta="stress_test_guide">Stress-test guide</a>
+        <span class="privacy-pill">No wallet · No signup</span>
         <button id="openAccessBtn" class="btn btn-ghost">Already purchased?</button>
         <button id="loadDemoBtn" class="btn btn-ghost">Load demo</button>
       </div>
@@ -50,22 +51,26 @@
     <main id="top">
       <section class="hero panel">
         <div>
-          <p class="eyebrow">12-DIMENSION PORTFOLIO INTELLIGENCE</p>
+          <p class="eyebrow">CRYPTO PORTFOLIO HEALTH CHECK</p>
           <h1>See what your crypto portfolio is hiding.</h1>
-          <p class="hero-copy">Enter holdings manually. Crypto Clarity AI measures structural risk, concentration, correlation, downside exposure, allocation quality and more — without connecting a wallet.</p>
+          <p class="hero-copy">Enter holdings manually to measure concentration, correlation, downside exposure, allocation quality and eight other portfolio-health factors. No wallet, exchange account, seed phrase or API key is required.</p>
           <div class="hero-badges">
-            <span>0–100 health score</span><span>Free partial analysis</span><span>Full report $12 once</span><span>No signup</span>
+            <span>0–100 health score</span><span>3 scores free</span><span>12-score report $12 once</span><span>Lifetime access</span>
+          </div>
+          <div class="hero-actions">
+            <a id="heroAnalyzeCta" class="btn btn-primary" href="#holdings" data-track-cta="hero_start_analysis">Start free analysis</a>
+            <button id="heroDemoBtn" class="btn btn-ghost" type="button">See a sample result</button>
           </div>
         </div>
         <div class="hero-score-card">
           <span class="muted">Portfolio Health</span>
           <div class="hero-score"><strong id="heroScore">—</strong><span>/100</span></div>
           <div id="heroRating" class="rating neutral">Waiting for holdings</div>
-          <p id="heroInsight" class="muted small">Your analysis stays in this browser.</p>
+          <p id="heroInsight" class="muted small">Manual entry only. Portfolio values are excluded from product analytics.</p>
         </div>
       </section>
 
-      <section class="workspace-grid">
+      <section id="holdings" class="workspace-grid">
         <aside class="panel input-panel">
           <div class="section-heading">
             <div><p class="eyebrow">STEP 1</p><h2>Your holdings</h2></div>
@@ -89,8 +94,8 @@
           <section id="accessGate" class="access-gate" aria-labelledby="accessHeading">
             <div>
               <p class="eyebrow">FULL REPORT</p>
-              <h3 id="accessHeading">Unlock all 12 scores, stress details and exact rebalance moves.</h3>
-              <p class="muted small">One-time $12 launch price · Regularly $19 · Lifetime access · 7-day money-back guarantee</p>
+              <h3 id="accessHeading">Your free preview shows 3 scores. Unlock all 12, stress details and rebalance scenarios.</h3>
+              <p class="muted small">$12 USD one-time launch price · Regularly $19 · No subscription · Lifetime access</p>
             </div>
             <div class="access-actions">
               <button id="checkoutBtn" class="btn btn-primary">Unlock full report — $12</button>
@@ -158,14 +163,23 @@
         </section>
       </section>
 
+      <section class="panel campaign-strip" aria-labelledby="stressCampaignHeading">
+        <div>
+          <p class="eyebrow">RISK-OFF CHECK</p>
+          <h2 id="stressCampaignHeading">Would one market shock hit every position at once?</h2>
+          <p>See illustrative downside scenarios and whether concentration or correlated holdings amplify the result.</p>
+        </div>
+        <a class="btn btn-primary" href="./stress-test" data-track-cta="in_app_stress_test">See the stress-test guide</a>
+      </section>
+
       <section class="panel methodology-note">
-        <p class="eyebrow">MIGRATION BUILD</p>
-        <h2>Designed to remove the recurring Replit dependency.</h2>
-        <p>This version keeps portfolio calculations browser-side and adds a server-verified $12 checkout and lifetime-access path. Privacy-safe product analytics record funnel actions only; coin symbols, dollar values, APYs, access codes and Stripe session IDs are never included in analytics events. Production remains unchanged until payment and formula parity are verified.</p>
+        <p class="eyebrow">CLEAR OFFER · CLEAR DATA USE</p>
+        <h2>What is free, what is paid, and how inputs are handled.</h2>
+        <p>The free preview provides a 0–100 health score, allocation view, top structural findings and 3 of 12 factor scores. A one-time $12 USD purchase unlocks the remaining scores, correlation detail, illustrative stress results and rebalance scenarios; there is no subscription. Holdings are entered manually and calculated in this browser. Public coin identifiers may be sent to CoinGecko to retrieve market data, while checkout and access verification use secure server endpoints. Product analytics exclude coin symbols, dollar values, APYs, access codes and Stripe session IDs.</p>
       </section>
     </main>
 
-    <footer>Crypto Clarity AI · Educational portfolio diagnostics · Portfolio inputs stay browser-side; analytics exclude holdings and access credentials.</footer>
+    <footer>Crypto Clarity AI · Educational portfolio diagnostics, not financial advice · No wallet connection required · support@cryptoclarityai.com</footer>
   </div>
   <script type="module" src="./app.js"></script>
 </body>

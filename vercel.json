@@ -3,6 +3,7 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/demo", "destination": "/index.html" },
+    { "source": "/stress-test", "destination": "/stress-test.html" },
     { "source": "/checkout/success", "destination": "/index.html" },
     { "source": "/checkout/cancel", "destination": "/index.html" }
   ],
