@@ -5,13 +5,15 @@ const money = (n) => new Intl.NumberFormat('en-US',{style:'currency',currency:'U
 const pct = (n, digits=1) => `${Number(n||0).toFixed(digits)}%`;
 const fmt = (n,d=2) => Number.isFinite(n) ? Number(n).toFixed(d) : '—';
 
-const TRACKING_VERSION = 'ccai-funnel-v1';
+const TRACKING_VERSION = 'ccai-funnel-v2';
+const ATTRIBUTION_KEY = 'ccai_campaign_attribution_v1';
 let analysisStartedAt = 0;
 let demoLoaded = false;
 
 function track(event, properties={}) {
   try {
     window.posthog?.capture?.(event, {
+      ...attribution(),
       ...properties,
       product: 'crypto_clarity_ai',
       surface: 'migration_app',
@@ -25,13 +27,30 @@ function attribution() {
   const params = new URLSearchParams(location.search);
   let refSource = '';
   try { refSource = document.referrer ? new URL(document.referrer).hostname : ''; } catch {}
-  const utmSource = params.get('utm_source') || '';
+  const clean = (value) => String(value || '').replace(/[^a-zA-Z0-9._~:/?&=+-]/g, '').slice(0, 120);
+  const incoming = {
+    utm_source: clean(params.get('utm_source')),
+    utm_medium: clean(params.get('utm_medium')),
+    utm_campaign: clean(params.get('utm_campaign')),
+    utm_content: clean(params.get('utm_content')),
+    utm_term: clean(params.get('utm_term')),
+  };
+  const hasIncoming = Object.values(incoming).some(Boolean);
+  let saved = {};
+  try {
+    saved = JSON.parse(sessionStorage.getItem(ATTRIBUTION_KEY) || '{}');
+    if (!saved || typeof saved !== 'object') saved = {};
+    if (hasIncoming) sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(incoming));
+  } catch {}
+  const campaign = hasIncoming ? incoming : saved;
   return {
-    source: utmSource || refSource || 'direct',
-    ref_source: refSource,
-    utm_source: utmSource,
-    utm_medium: params.get('utm_medium') || '',
-    utm_campaign: params.get('utm_campaign') || '',
+    source: campaign.utm_source || clean(refSource) || 'direct',
+    ref_source: clean(refSource),
+    utm_source: campaign.utm_source || '',
+    utm_medium: campaign.utm_medium || '',
+    utm_campaign: campaign.utm_campaign || '',
+    utm_content: campaign.utm_content || '',
+    utm_term: campaign.utm_term || '',
     landing_page: location.origin + location.pathname,
     page_path: location.pathname,
   };
@@ -313,7 +332,15 @@ function renderRebalance(){if(!last)return;const s=STRATEGIES[activeStrategy],ta
 function renderFuture(){if(!last)return;const years=Number($('#futureYears').value),monthly=Number($('#monthlyContribution').value)||0;$('#futureYearsLabel').textContent=`${years} year${years===1?'':'s'}`;const stakeBoost=last.holdings.reduce((s,x)=>s+x.weight*(x.apy/100),0);const scenarios=[['Bear',-.04],['Base',.08],['Bull',.18]];$('#futureCards').className='future-grid';$('#futureCards').innerHTML=scenarios.map(([name,r])=>{const annual=r+stakeBoost;const monthlyR=Math.pow(1+annual,1/12)-1;const n=years*12;let fv=last.total*Math.pow(1+monthlyR,n);if(monthly>0)fv+=monthlyR===0?monthly*n:monthly*((Math.pow(1+monthlyR,n)-1)/monthlyR);return `<article class="future-card"><span>${name} scenario · ${(annual*100).toFixed(1)}% incl. weighted APY</span><strong>${money(fv)}</strong><small>${years}y · ${money(monthly)}/mo contribution</small></article>`}).join('');}
 
 $('#addHoldingBtn').onclick=()=>addHolding();
-$('#loadDemoBtn').onclick=()=>{demoLoaded=true;track('free demo loaded',{holding_count:5});loadDemo();analyze();};
+function loadAndAnalyzeDemo(ctaLocation) {
+  demoLoaded=true;
+  track('free demo loaded',{holding_count:5,cta_location:ctaLocation});
+  loadDemo();
+  analyze();
+}
+
+$('#loadDemoBtn').onclick=()=>loadAndAnalyzeDemo('header');
+$('#heroDemoBtn').onclick=()=>loadAndAnalyzeDemo('hero');
 $('#analyzeBtn').onclick=()=>{demoLoaded=false;analyze();};
 $('#openAccessBtn').onclick=()=>showAccessGate('Enter a lifetime code or unlock the complete report for $12.');
 $('#checkoutBtn').onclick=()=>startCheckout('report_gate');
@@ -324,7 +351,9 @@ $('.tab').forEach(t=>t.onclick=()=>{
 });
 $('.strategy').forEach(b=>b.onclick=()=>{$('.strategy').forEach(x=>x.classList.remove('active'));b.classList.add('active');activeStrategy=b.dataset.strategy;renderRebalance();track('rebalance strategy viewed',{strategy:activeStrategy});});
 $('#futureYears').oninput=renderFuture;$('#monthlyContribution').oninput=renderFuture;
+$$('[data-track-cta]').forEach((link)=>link.addEventListener('click',()=>track('owned link clicked',{cta_location:link.dataset.trackCta||'unknown'})));
 ['BTC','ETH','SOL'].forEach((symbol,i)=>addHolding({symbol,value:i===0?10000:i===1?5000:2500,apy:i===1?3.2:i===2?6.5:''}));
 setAccess(false);
 restoreAccess();
 handleCheckoutRoute();
+track('app landing viewed');

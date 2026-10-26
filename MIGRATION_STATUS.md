@@ -14,6 +14,7 @@ Move the Portfolio Health Analyzer off Replit so ordinary product updates no lon
 - Static CI checks pass on the migration branch.
 - Privacy-safe PostHog funnel instrumentation is implemented on the migration branch.
 - A $12 checkout/access gate now limits free analysis to three risk dimensions and routes verified buyers through the server-side entitlement flow.
+- An October 26 conversion candidate clarifies the free-versus-paid offer, removes internal migration language from customer-facing UI, adds a tracked `/stress-test` acquisition page, and preserves UTM attribution from landing page through checkout. It is **not deployed** until the repository-to-production mapping is verified.
 
 ## What this replacement already covers
 - Manual holdings entry; no wallet connection.
