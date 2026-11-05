@@ -79,3 +79,30 @@ h2 { margin:0; font-size:24px; } h3 { margin:20px 0 12px; font-size:16px; }
 
 .campaign-page{max-width:1180px}.campaign-hero{padding:54px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:42px;align-items:center}.campaign-hero h1{font-size:clamp(38px,6vw,68px)}.shock-card{padding:26px;border-radius:18px;border:1px solid rgba(255,104,119,.4);background:linear-gradient(145deg,#23141d,#0b1726)}.shock-card span,.shock-card small{display:block;color:var(--muted);font-size:12px}.shock-card strong{display:block;margin:12px 0 4px;color:var(--red);font-size:54px;line-height:1}.shock-card p{margin:8px 0 18px;color:#dce7f3}.campaign-content{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;margin-top:18px}.explainer-card{padding:30px}.explainer-card>p{color:#a9bbcf;line-height:1.65}.scenario-result{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.scenario-result div{padding:14px;border-radius:12px;border:1px solid var(--line);background:#081522}.scenario-result span{display:block;color:var(--muted);font-size:11px}.scenario-result strong{display:block;margin-top:7px;font-size:20px}.scenario-result .loss{color:var(--red)}.check-list{display:flex;flex-direction:column;gap:14px;padding-left:20px;color:#a9bbcf;line-height:1.5}.check-list strong{color:white}.final-cta{margin-top:18px;padding:38px;text-align:center}.final-cta h2,.final-cta>p{max-width:780px;margin-left:auto;margin-right:auto}.final-cta>p{color:#a9bbcf;line-height:1.6}.final-cta .btn{display:inline-flex;margin-top:8px;text-decoration:none}.final-cta .status-note{margin-top:18px}
 @media(max-width:800px){.campaign-hero{grid-template-columns:1fr;padding:28px}.campaign-content{grid-template-columns:1fr}.scenario-result{grid-template-columns:1fr}.final-cta{padding:28px}}
+
+
+/* Competitor exit-ramp comparison pages */
+.comparison-page{max-width:1180px}
+.comparison-hero{padding:52px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:42px;align-items:center}
+.comparison-hero h1{font-size:clamp(38px,6vw,66px)}
+.comparison-score-card{padding:28px;border-radius:18px;border:1px solid rgba(63,140,255,.42);background:linear-gradient(145deg,#102844,#091423)}
+.comparison-score-card>span,.comparison-score-card small{display:block;color:var(--muted);font-size:12px}
+.comparison-score-card>strong{display:block;font-size:64px;line-height:1;margin:14px 0 10px}
+.comparison-score-card>strong span{font-size:22px;color:var(--muted)}
+.comparison-score-card p{color:#c3d2e4;line-height:1.5}
+.comparison-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+.comparison-card{padding:30px;position:relative;overflow:hidden}
+.comparison-card h2{font-size:28px}.comparison-card>p:not(.eyebrow){color:#a9bbcf;line-height:1.6}
+.comparison-card.analyzer-card{border-color:rgba(63,140,255,.55);background:linear-gradient(160deg,rgba(24,70,126,.48),rgba(7,17,31,.97))}
+.comparison-card.analyzer-card:after{content:"ANALYZER";position:absolute;right:-22px;top:18px;transform:rotate(38deg);font-size:10px;letter-spacing:.16em;font-weight:900;color:#84bdff;opacity:.65}
+.comparison-list{display:flex;flex-direction:column;gap:12px;margin:22px 0 0;padding:0;list-style:none;color:#c5d2e1}
+.comparison-list li{position:relative;padding-left:24px;line-height:1.45}
+.comparison-list li:before{content:"•";position:absolute;left:4px;color:#7390ad;font-weight:900}
+.check-list-compact li:before{content:"✓";left:0;color:var(--green)}
+.bridge-card{margin-top:18px;padding:38px;text-align:center;background:linear-gradient(120deg,rgba(99,92,255,.12),rgba(63,140,255,.1))}
+.bridge-card h2,.bridge-card>p:not(.eyebrow){max-width:820px;margin-left:auto;margin-right:auto}
+.bridge-card>p:not(.eyebrow){color:#a9bbcf;line-height:1.65}.bridge-card .btn{display:inline-flex;margin-top:10px;text-decoration:none}
+.comparison-proof{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:18px;padding:0;overflow:hidden}
+.comparison-proof>div{padding:32px}.comparison-proof>div+div{border-left:1px solid var(--line)}
+.comparison-proof p:not(.eyebrow){color:#a9bbcf;line-height:1.6}
+@media(max-width:800px){.comparison-hero{grid-template-columns:1fr;padding:28px}.comparison-grid,.comparison-proof{grid-template-columns:1fr}.comparison-proof>div+div{border-left:0;border-top:1px solid var(--line)}.bridge-card{padding:28px}.comparison-score-card>strong{font-size:54px}}
