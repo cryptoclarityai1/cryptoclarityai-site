@@ -2,18 +2,63 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/demo", "destination": "/index.html" },
-    { "source": "/stress-test", "destination": "/stress-test.html" },
-    { "source": "/checkout/success", "destination": "/index.html" },
-    { "source": "/checkout/cancel", "destination": "/index.html" }
+    {
+      "source": "/demo",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/stress-test",
+      "destination": "/stress-test.html"
+    },
+    {
+      "source": "/checkout/success",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/checkout/cancel",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/compare/koinly",
+      "destination": "/compare.html"
+    },
+    {
+      "source": "/compare/cointracker",
+      "destination": "/compare.html"
+    },
+    {
+      "source": "/compare/coinstats",
+      "destination": "/compare.html"
+    },
+    {
+      "source": "/compare/delta",
+      "destination": "/compare.html"
+    },
+    {
+      "source": "/compare/kubera",
+      "destination": "/compare.html"
+    },
+    {
+      "source": "/compare/best-crypto-portfolio-analyzer",
+      "destination": "/compare.html"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
       ]
     }
   ]
