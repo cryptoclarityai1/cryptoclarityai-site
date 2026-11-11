@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#07111f" />
-  <meta name="description" content="Check your crypto portfolio health score, concentration risk and downside exposure without connecting a wallet. Free preview; complete report for $12 once." />
+  <meta name="description" content="Check your crypto portfolio health score, concentration risk and downside exposure without connecting a wallet. Free preview with 3 factor scores; full 12-factor report for $12 once, no subscription." />
 
   <script>
     (function () {
@@ -32,6 +32,9 @@
   <title>Crypto Clarity AI — Portfolio Health Analyzer</title>
   <link rel="preconnect" href="https://api.coingecko.com" />
   <link rel="stylesheet" href="./styles.css" />
+<style>
+.sample-report{margin:24px 0}.sample-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0}.sample-dimensions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.sample-dimensions span{display:flex;justify-content:space-between;gap:12px;padding:14px;border:1px solid rgba(160,190,220,.22);border-radius:12px}.sample-detail{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:16px 0}@media(max-width:760px){.sample-summary,.sample-dimensions,.sample-detail{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
   <div class="app-shell">
@@ -59,7 +62,7 @@
           </div>
           <div class="hero-actions">
             <a id="heroAnalyzeCta" class="btn btn-primary" href="#holdings" data-track-cta="hero_start_analysis">Start free analysis</a>
-            <button id="heroDemoBtn" class="btn btn-ghost" type="button">See a sample result</button>
+            <a class="btn btn-ghost" href="#sample-report">See a complete sample report</a>
           </div>
         </div>
         <div class="hero-score-card">
@@ -70,6 +73,36 @@
         </div>
       </section>
 
+
+      <section class="panel sample-report" id="sample-report" aria-labelledby="sampleHeading">
+        <p class="eyebrow">COMPLETE ILLUSTRATIVE SAMPLE · NO SIGNUP</p>
+        <h2 id="sampleHeading">See the report before you buy.</h2>
+        <p class="muted">This is a fictional BTC / ETH / SOL / USDC portfolio shown to demonstrate the report layout. Scores and scenarios below are examples, not a live analysis or a claim about your holdings.</p>
+        <div class="sample-summary">
+          <article class="kpi"><span>Health score</span><strong>62 / 100</strong><small>Needs attention</small></article>
+          <article class="kpi"><span>Largest position</span><strong>55% BTC</strong><small>Concentration to review</small></article>
+          <article class="kpi"><span>Effective holdings</span><strong>2.6</strong><small>HHI-derived</small></article>
+          <article class="kpi"><span>Allocation</span><strong>55 / 25 / 15 / 5</strong><small>BTC / ETH / SOL / USDC</small></article>
+        </div>
+        <h3>All 12 dimensions in the full report</h3>
+        <div class="sample-dimensions">
+          <span>Concentration Risk <b>48</b></span><span>Diversification <b>54</b></span><span>Volatility Exposure <b>59</b></span><span>Liquidity <b>83</b></span>
+          <span>Drawdown Risk <b>51</b></span><span>Profitability Position <b>64</b></span><span>Allocation Balance <b>61</b></span><span>Large-Cap Stability <b>79</b></span>
+          <span>Altcoin Fragility <b>69</b></span><span>Yield Quality <b>60</b></span><span>Rebalance Readiness <b>57</b></span><span>Conviction vs Overexposure <b>55</b></span>
+        </div>
+        <div class="sample-detail"><div><h3>Risk findings</h3><p>In this fictional example, the largest holding accounts for 55%. A market-wide decline could affect BTC, ETH and SOL together. The full report shows the correlation detail and illustrative shock scenarios.</p></div><div><h3>Rebalance example</h3><p>Compare BTC Core, Balanced and Aggressive Diversification targets, with dollar moves based on the values you enter. These are educational scenarios, not trade recommendations.</p></div></div>
+        <p class="muted small">The live preview gives a health score, allocation, top findings and 3 factor scores. The $12 one-time purchase unlocks the other 9 scores, correlation detail, stress scenarios and rebalance views. No subscription or ad-removal purchase.</p>
+        <a class="btn btn-primary" href="#holdings" data-track-cta="sample_start_analysis">Analyze my portfolio free</a>
+      </section>
+
+      <section class="panel methodology-note" id="methodology">
+        <p class="eyebrow">HOW THIS PREVIEW SCORES</p>
+        <h2>Transparent scoring in this migration preview</h2>
+        <p>Each factor receives a 0–100 score. The weighted average is rounded to a whole number. Concentration and diversification each carry 14%; volatility and drawdown 9% each; liquidity, allocation and large-cap stability 8% each; altcoin fragility 7%; profitability, rebalance readiness and conviction 6% each; yield quality 5%. The weights total 100%. This is the replacement preview's formula; the original production app's proprietary weights have not been verified and must not be described as identical.</p>
+        <p>Concentration uses the Herfindahl index: sum of squared position weights. Effective holdings equals 1 divided by that index. Historical volatility, drawdown and correlation use up to 180 days of CoinGecko data when available; unavailable assets use labeled estimates. Stress tests and future values are illustrative, not forecasts.</p>
+      </section>
+
+      <section class="panel methodology-note" id="maker"><p class="eyebrow">THE MAKER</p><h2>Built by Zachary Knop</h2><p>Zachary is the founder of Crypto Clarity AI. The analyzer helps people inspect portfolio concentration and downside exposure without connecting a wallet. For product questions, contact support@cryptoclarityai.com.</p></section>
       <section id="holdings" class="workspace-grid">
         <aside class="panel input-panel">
           <div class="section-heading">
